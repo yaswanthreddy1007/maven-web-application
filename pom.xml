@@ -103,7 +103,7 @@
 	    <snapshotRepository>
 	      <id>nexus</id>
 	      <name>Mithun Technologies Snapshot Nexus Repository </name>
-	      <url>http://172.31.10.30/yaswanth/repository/canarabank.snapshot/</url>
+	      <url>http://172.31.10.30:8081/yaswanth/repository/canarabank.snapshot/</url>
 	    </snapshotRepository>
 	    
 	</distributionManagement>
