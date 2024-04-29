@@ -1,0 +1,39 @@
+node{
+def mavenHome = tool name : 'maven3.9.6'
+
+echo "The name  of the branch ${env.BRANCH_NAME}"
+echo "The Job name is : ${env.JOB_NAME}"
+echo "Jenkins Home dir is: ${env.JENKINS_HOME}"
+echo "THe Jenkins node name is: ${env.NODE_NAME}"
+echo "The Build number is: ${env.BUILD_NUMBER}"
+
+
+properties([buildDiscarder(logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '5', daysToKeepStr: '', numToKeepStr: '5')), [$class: 'RebuildSettings', autoRebuild: false, rebuildDisabled: false], [$class: 'JobLocalConfiguration', changeReasonComment: ''], pipelineTriggers([pollSCM('* * * * *')])])
+
+stage("code checkout"){
+git branch: 'development', credentialsId: 'bd5268bd-160c-4d40-bac4-280491021cd7', url: 'https://github.com/yaswanthreddy1007/maven-web-application.git'
+}
+
+stage("Build"){
+
+sh "${mavenHome}/bin/mvn clean package"
+
+}
+
+stage("Generating sonarQube Report"){
+sh "${mavenHome}/bin/mvn clean  sonar:sonar"
+}
+
+stage("UploadArfifactIntoNexus"){
+sh "${mavenHome}/bin/mvn clean deploy"
+}
+
+stage("DelpoytheAppintoServer"){
+
+sshagent(['yaswanthreddy']) {
+   sh  "scp -o StrictHostKeyChecking=no target/maven-web-application.war ec2-user@172.31.36.218:/opt/apache-tomcat-9.0.86/webapps"
+}
+
+
+
+}
