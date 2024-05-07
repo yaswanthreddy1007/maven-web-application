@@ -1,0 +1,77 @@
+@Library('gova')_
+
+pipeline{
+
+agent {
+  label 'nodes'
+}
+
+
+tools {
+  maven 'maven3.9.6'
+}
+
+options {
+  buildDiscarder logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '5', daysToKeepStr: '', numToKeepStr: '5')
+  timestamps()
+}
+
+
+stages {
+  stage('codeCheckout') {
+    steps {
+        
+     sendSlackNotifications('STARTED')
+     git branch: 'development', credentialsId: 'bd5268bd-160c-4d40-bac4-280491021cd7', url: 'https://github.com/yaswanthreddy1007/maven-web-application.git'
+    }
+  }
+
+  stage('TestAndBuild') {
+    parallel {
+      stage('Build') {
+  steps {
+    sh "mvn clean package"
+}
+}//build stage end
+
+stage('Test') {
+  steps {
+    sh "mvn clean test"
+  }
+} //Test stage End
+
+
+    }//parallel stage end
+  } //TestandBuild stage end
+
+stage('SonarReport') {
+  steps {
+    sh "mvn clean sonar:sonar"
+  }
+}//sonarstage end
+
+stage('uploadArtifacts') {
+  steps {
+    sh "mvn clean deploy"
+  }
+}//uploaded stage end
+
+stage('DeployAppintoTomcat') {
+  steps {
+    deploy adapters: [tomcat9(credentialsId: 'dcc3b392-2e4a-4da5-8d23-31c0f7936692', path: '', url: 'http://172.31.36.218:1999')], contextPath: 'webapps', war: '**/*.war'
+  }
+}//deploysatge is end
+
+}//stages End
+
+post {
+  success {
+    sendSlackNotifications(currentBuild.result)
+  }
+  failure {
+    sendSlackNotifications(currentBuild.result)
+  }
+}//poststage is end
+
+
+}//pipeline closed
