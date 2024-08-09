@@ -1,11 +1,11 @@
-version: '3.1'
-services:
-  springboot:
-    image: dockerhandson/maven-web-application:VERSION
-    restart: always
-    ports:
-    - 9090:8080
-    networks:
-    - mavenappbridge
+version: "3"
 networks:
-  mavenappbridge:
+  gova:
+    driver: bridge
+services:
+  webapp:
+    image: yaswanthreddy1007/mywebapp:TAG
+    ports:
+    - 8080:8080
+    networks:
+    -  gova
